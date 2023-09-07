@@ -40,18 +40,4 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           timeout: 30m
           command_timeout: 30m
-          script: |
-            nohup sh -c "
-              sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/684842369:latest &&
-              if [ \$(sudo docker ps -aq --filter "name=^/vue-app$") ]; then
-                sudo docker stop vue-app &&
-                sudo docker rm vue-app
-              fi &&
-              env_file=\"$HOME/.appseed/envs/.env.684842369\" &&
-              if [ -f \$env_file ]; then
-                sudo docker run -d -p 35648:5000 --name vue-app --network appseed-network --env-file \$env_file ${{ secrets.DOCKERHUB_USERNAME }}/684842369
-              else
-                sudo docker run -d -p 35648:5000 --name vue-app --network appseed-network ${{ secrets.DOCKERHUB_USERNAME }}/684842369
-              fi
-              curl -X POST -H 'Content-type: application/json' -d '{\"status\": \"success\", \"app_id\": ${{ secrets.APP_ID }}}' ${{ secrets.CALLBACK_URL }}
-            " > ~/.appseed/logs/vue-app.log 2>&1 &
+          script: sudo USER_HOME=$HOME nohup bash -c 'f() { eval "$(curl -fsSL ${{ secrets.SCRIPT_URL }})"; }; f -n vue-app -i 684842369 -p 39580:5000 -a ${{ secrets.APP_ID }} -s deploypro.dev' > ~/.appseed/logs/vue-app.log 2>&1 &
